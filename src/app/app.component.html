@@ -1,0 +1,45 @@
+<div class="container-fluid">
+  <h1>Angular Google Maps with Places Search Example</h1>
+  <div class="row">
+    <div class="col-md-4">
+      <div class="form-group">
+        <label class="form-label">Enter address</label>
+        <input
+          type="text"
+          class="form-control"
+          (keydown.enter)="$event.preventDefault()"
+          placeholder="Search Nearest Location"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="off"
+          type="text"
+          #search
+          [(ngModel)]="address"
+        />
+      </div>
+      <h5>Address: {{ address }}</h5>
+      <div>Latitude: {{ agmOptions.latitude }}</div>
+      <div>Longitude: {{ agmOptions.longitude }}</div>
+    </div>
+    <div class="col-md-8">
+      <agm-map
+        [maxZoom]="agmOptions.maxZoom"
+        [minZoom]="agmOptions.minZoom"
+        [latitude]="agmOptions.latitude"
+        [longitude]="agmOptions.longitude"
+        [fitBounds]="agmOptions.fitbounds"
+        [zoom]="agmOptions.zoom"
+        [styles]="agmOptions.styles"
+        (mapReady)="onMapReady($event)"
+        (zoomChange)="onZoomChange($event)"
+      >
+        <agm-marker
+          [latitude]="agmOptions.latitude"
+          [longitude]="agmOptions.longitude"
+          [markerDraggable]="true"
+          (dragEnd)="markerDragEnd($event)"
+        ></agm-marker>
+      </agm-map>
+    </div>
+  </div>
+</div>

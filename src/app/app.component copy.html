@@ -1,0 +1,64 @@
+<!-- this creates a google map on the page with the given lat/lng from -->
+<!-- the component as the initial center of the map: -->
+<div class="parentDiv">
+  <div class="childDivA">   
+    <ejs-accordion>
+      <e-accordionitems>
+        <e-accordionitem expanded='true' *ngFor="let marker of markers">
+          <ng-template #header>
+            <div>{{marker.lat}}</div>
+          </ng-template>
+          <ng-template #content>
+            <div>Microsoft ASP.NET is a set of technologies in the Microsoft .NET Framework for building Web applications
+              and XML Web services.
+            </div>
+          </ng-template>
+        </e-accordionitem>
+        
+      </e-accordionitems>
+    </ejs-accordion>
+
+  </div><div class="childDivB"> 
+    
+<div class="col-md-8">
+  <agm-map 
+  [maxZoom]="15"
+  [minZoom]="5"
+  [fitBounds]="true">
+
+  <agm-marker 
+    *ngFor="let marker of markers" 
+    [latitude]="marker.lat" 
+    [longitude]="marker.lng" 
+    [agmFitBounds]="true"
+    [iconUrl]="{
+        url: './assets/images/vehicle.png',
+        scaledSize: {
+            width: 30,
+            height: 30
+        }
+    }"
+    (markerClick)="clickMarker(infowindow)">
+
+    <agm-info-window 
+      [disableAutoPan]="false" 
+      #infowindow>
+      <h4>Test</h4>
+      <p>this is testing application.</p>
+    </agm-info-window>
+  </agm-marker>
+
+  <agm-polyline [strokeColor]="'#2196f3'">
+    <agm-polyline-point 
+      *ngFor="let polyline of polylines" 
+      [latitude]="polyline.lat" 
+      [longitude]="polyline.lng">
+    </agm-polyline-point>
+  </agm-polyline>
+
+</agm-map>
+</div>
+    
+  </div>
+</div>
+
