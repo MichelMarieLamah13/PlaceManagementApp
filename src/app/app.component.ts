@@ -1,5 +1,6 @@
-import { MapsAPILoader, MouseEvent } from "@agm/core";
+import { AgmInfoWindow, MapsAPILoader, MouseEvent } from "@agm/core";
 import { Component, ElementRef, NgZone, ViewChild } from "@angular/core";
+import { MyServiceService } from "./my-service.service";
 
 @Component({
   selector: "app-root",
@@ -15,6 +16,7 @@ export class AppComponent {
     maxZoom: 22,
     minZoom: 3,
     fitbounds: true,
+    disableDefaultUI:true,
     styles: [
       {
         featureType: "administrative.country",
@@ -29,14 +31,24 @@ export class AppComponent {
   @ViewChild("search")
   public searchElementRef: ElementRef;
 
-  constructor(private mapsAPILoader: MapsAPILoader, private ngZone: NgZone) {}
+  start={
+    latitude:0,
+    longitude:0,
+    address:''
+  }
+  end={
+    latitude:0,
+    longitude:0,
+    address:''
+  }
+  constructor(private mapsAPILoader: MapsAPILoader, private ngZone: NgZone, private myService: MyServiceService) {}
 
   ngOnInit() {
+    this.GetVehicleProche()
     //load Places Autocomplete
     this.mapsAPILoader.load().then(() => {
-      this.setCurrentLocation();
       this.geoCoder = new google.maps.Geocoder();
-
+      this.setCurrentLocation();
       let autocomplete = new google.maps.places.Autocomplete(
         this.searchElementRef.nativeElement
       );
@@ -54,8 +66,10 @@ export class AppComponent {
           this.agmOptions.latitude = place.geometry.location.lat();
           this.agmOptions.longitude = place.geometry.location.lng();
           this.agmOptions.zoom = 12;
+          this.address = place.formatted_address;
         });
       });
+      console.log('hello');
     });
   }
 
@@ -82,8 +96,6 @@ export class AppComponent {
     this.geoCoder.geocode(
       { location: { lat: latitude, lng: longitude } },
       (results, status) => {
-        console.log(results);
-        console.log(status);
         if (status === "OK") {
           if (results[0]) {
             this.agmOptions.zoom = 12;
@@ -103,5 +115,39 @@ export class AppComponent {
   }
   onZoomChange(zoom: number) {
     this.agmOptions.zoom = zoom;
+  }
+
+  setStart(){
+    this.start.latitude = this.agmOptions.latitude;
+    this.start.longitude = this.agmOptions.longitude;
+    this.start.address = this.address;
+  }
+
+  setEnd(){
+    this.end.latitude = this.agmOptions.latitude;
+    this.end.longitude = this.agmOptions.longitude;
+    this.end.address = this.address;
+  }
+
+  GetVehicleProche(){
+    let webServiceUrl = "http://wsdv.sendatrack.com/GPS/Lst_div/vanadinite/admin/senda123/10/33.13334/-8.60151";
+    this.myService.GetVehicleProche(webServiceUrl).subscribe(
+      (data)=>{
+        console.log(data);
+      },
+      (error)=>{
+        console.log(error);
+      }
+    )
+  }
+
+  previousWindow: AgmInfoWindow = null;
+
+  clickMarker(infoWindow: AgmInfoWindow, event) {
+    if (this.previousWindow) {
+      this.previousWindow.close();
+    }
+    this.previousWindow = infoWindow;
+    console.log(event);
   }
 }

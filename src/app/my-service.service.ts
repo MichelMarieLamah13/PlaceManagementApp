@@ -1,3 +1,4 @@
+import { EventData } from './../models/Response';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { DataModel } from 'src/models/Response';
@@ -14,22 +15,24 @@ import { User } from 'src/models/User';
 })
 export class MyServiceService {
   DataModel: DataModel;
+  params: HttpParams = new HttpParams();
 
-  constructor(private http: HttpClient) { }
-  GetData1(url) {
+  constructor(private http: HttpClient) {
+
+  }
+  GetData1(url:string) {
     //  debugger;
-    let params = new HttpParams();
-    params = params.append('URL', url);
-    return this.http.get(environment.Server, { params: params });
+    this.params = this.params.append('URL', url);
+    return this.http.get(environment.Server, { params: this.params });
     // return this.http.get('http://backup.sendatrack.com:8080/events7/data.jsonx', {params});
     //   debugger;
     //return this.http.get(url);
     //return this.http.get('http://backup.sendatrack.com:8080/events7/data.jsonx?a=motivation&p=motivation123321&u=admin&g=all&l=1&at=true');
 
   }
-  GetUser(): Observable<User>{
-    const url  = "./assets/xyz.json";
-    return this.http.get<User>(url);
+  GetVehicleProche(url:string): Observable<EventData[]>{
+    this.params = this.params.append('URL', url);
+    return this.http.get<EventData[]>(environment.Server, {params: this.params});
   }
 }
 
