@@ -17,6 +17,8 @@ import { FormsModule } from '@angular/forms';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgxEchartsModule } from 'ngx-echarts';
+import { NgMultiSelectDropDownModule } from 'ng-multiselect-dropdown';
+import { AgmDirectionModule } from 'agm-direction';
 
 
 //@Injectable()
@@ -64,7 +66,9 @@ import { NgxEchartsModule } from 'ngx-echarts';
       apiKey:'AIzaSyAv-gQfsVWULK4vu2THDXFXUmg9cc-MVz4',
       libraries: ['places']
     }) ,
-    NgxEchartsModule
+    NgxEchartsModule,
+    NgMultiSelectDropDownModule.forRoot(),
+    AgmDirectionModule
   ],
   exports:[
     NgbModule

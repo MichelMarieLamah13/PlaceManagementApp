@@ -37,7 +37,8 @@ export class EventData {
   public Index: number;
   public markerDescription: string;
   public isActive: boolean;
-  public icon?:object={};
+  public icon?: object = {};
+  public distanceBetween?:number;
 }
 
 export class DeviceList {
@@ -75,6 +76,19 @@ export class DataModel {
   public Costfuel: number;
 }
 export class marker {
-  public lat: number;
-  public lng: number;
+  lat?: number;
+  lng?: number;
+  address?:string;
+  icon?:any;
+}
+
+export class AgmOpt {
+  fitbounds?: boolean;
+  latitude?: number;
+  longitude?: number;
+  maxZoom?: number;
+  minZoom?: number;
+  zoom?: number;
+  disableDefaultUI: boolean;
+  styles: any[];
 }

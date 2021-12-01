@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  Server:'http://israr901-002-site11.itempurl.com/public/api/apicall'
+  Server:'http://israr901-002-site11.itempurl.com/public/api/apicall',
 };
 
 /*
