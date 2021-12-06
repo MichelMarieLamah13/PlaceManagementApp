@@ -16,6 +16,10 @@ export class AppComponent {
   startPosition: any;
   endPosition: any;
   agmOpt: AgmOpt;
+  startAddress:string="";
+  endAddress:string="";
+  distanceItineraire:string="";
+  dureeItineraire:string="";
 
   @ViewChild("search")
   public searchElementRef: ElementRef;
@@ -32,6 +36,12 @@ export class AppComponent {
     this.agmOpt = new AgmOpt();
     this.agmOpt.maxZoom = 22;
     this.agmOpt.minZoom = 3;
+    this.agmOpt.styles = [
+      {
+        featureType: "administrative.country",
+        stylers: [{ visibility: "off" }],
+      },
+    ];
   }
 
   ngOnInit() {
@@ -52,6 +62,7 @@ export class AppComponent {
 
           this.searchedPosition.lat = place.geometry.location.lat();
           this.searchedPosition.lng = place.geometry.location.lng();
+          this.searchedPosition.address = place.formatted_address;
           this.agmOpt.zoom = 12;
           //To get start position of the direction
           this.getStartPosition();
@@ -60,6 +71,7 @@ export class AppComponent {
       });
     });
     this.initDropdown();
+    this.initPiDropdown();
   }
 
   private setCurrentLocation() {
@@ -70,7 +82,7 @@ export class AppComponent {
         this.agmOpt.zoom = 8;
         this.getStartPosition();
         this.getAddress();
-        this.GetVehicleProche();
+        //this.GetVehicleProche();
       });
     }
   }
@@ -88,6 +100,7 @@ export class AppComponent {
           if (results[0]) {
             this.agmOpt.zoom = 12;
             this.searchedPosition.address = results[0].formatted_address;
+            this.startAddress = this.searchedPosition.address;
           } else {
             window.alert("No results found");
           }
@@ -132,6 +145,7 @@ export class AppComponent {
         console.log(error);
       }
     );
+    this.clearDirection();
   }
   GetConnectedUser() {
     let compte = localStorage.getItem("compte");
@@ -144,13 +158,18 @@ export class AppComponent {
 
   previousWindow: AgmInfoWindow = null;
 
-  clickMarker(infoWindow: AgmInfoWindow, event: any = null) {
-    if (this.previousWindow && this.previousWindow.isOpen) {
+  clickMarker(infoWindow: AgmInfoWindow, event: EventData = null) {
+
+    if (this.previousWindow) {
       this.previousWindow.close();
     }
     this.previousWindow = infoWindow;
     if (event) {
-      this.drawDirection(event);
+      this.selectedMarker = event;
+      this.endAddress = this.selectedMarker.Address;
+      this.dureeItineraire="";
+      this.distanceItineraire="";
+      this.isDrew=false;
     }
   }
 
@@ -159,6 +178,7 @@ export class AppComponent {
     this.searchedPosition.lng = event.coords.lng;
     this.getStartPosition();
     this.getAddress();
+    this.GetVehicleProche();
   }
 
   dropdownList = [];
@@ -178,6 +198,91 @@ export class AppComponent {
       searchPlaceholderText: "Rechercher",
     };
   }
+
+  piDropdownList = [];
+  piSelectedItems = [];
+  piDropdownSettings = {};
+  listPI=[];
+  initPiDropdown(){
+    this.piDropdownList = [
+      {
+        item_id: 1,
+        item_text: "India",
+        image: "http://www.sciencekids.co.nz/images/pictures/flags96/India.jpg",
+      },
+      {
+        item_id: 2,
+        item_text: "Spain",
+        image: "http://www.sciencekids.co.nz/images/pictures/flags96/Spain.jpg",
+      },
+      {
+        item_id: 3,
+        item_text: "United Kingdom",
+        image:
+          "http://www.sciencekids.co.nz/images/pictures/flags96/United_Kingdom.jpg",
+      },
+      {
+        item_id: 4,
+        item_text: "Canada",
+        image:
+          "http://www.sciencekids.co.nz/images/pictures/flags96/Canada.jpg",
+        isDisabled: true,
+      },
+      {
+        item_id: 5,
+        item_text: "Israel",
+        image:
+          "http://www.sciencekids.co.nz/images/pictures/flags96/Israel.jpg",
+      },
+      {
+        item_id: 6,
+        item_text: "Brazil",
+        image:
+          "http://www.sciencekids.co.nz/images/pictures/flags96/Brazil.jpg",
+      },
+      {
+        item_id: 7,
+        item_text: "Barbados",
+        image:
+          "http://www.sciencekids.co.nz/images/pictures/flags96/Barbados.jpg",
+      },
+      {
+        item_id: 8,
+        item_text: "Mexico",
+        image:
+          "http://www.sciencekids.co.nz/images/pictures/flags96/Mexico.jpg",
+      },
+    ];
+    this.piSelectedItems = [
+      {
+        item_id: 1,
+        item_text: "India",
+        image: "http://www.sciencekids.co.nz/images/pictures/flags96/India.jpg",
+      },
+      {
+        item_id: 5,
+        item_text: "Israel",
+        image:
+          "http://www.sciencekids.co.nz/images/pictures/flags96/Israel.jpg",
+      },
+    ];
+    this.piDropdownSettings = {
+      singleSelection: false,
+      idField: 'item_id',
+      textField: 'item_text',
+      selectAllText: 'Select All',
+      unSelectAllText: 'UnSelect All',
+      itemsShowLimit: 3,
+      allowSearchFilter: true
+    };
+  }
+  get getPI() {
+    return this.piDropdownList.reduce((acc, curr) => {
+      acc[curr.item_id] = curr;
+      return acc;
+    }, {});
+  }
+
   rayon: number = 10;
   onItemSelect(item: any) {
     let val: string = item.split(" ")[0];
@@ -240,20 +345,25 @@ export class AppComponent {
     suppressMarkers: true,
   };
   isDrew: boolean = false;
-  drawDirection(event: any) {
-    let lat = event.latitude;
-    let lng = event.longitude;
-    if (
-      this.endPosition &&
-      lat == this.endPosition.lat &&
-      lng == this.endPosition.lng &&
-      this.isDrew
-    ) {
-      this.isDrew = !this.isDrew;
-    } else {
-      this.isDrew = true;
+  selectedMarker:EventData;
+  drawDirection() {
+    if(this.selectedMarker){
+      let lat = this.selectedMarker.GPSPoint_lat;
+      let lng = this.selectedMarker.GPSPoint_lon;
+      if (
+        this.endPosition &&
+        lat == this.endPosition.lat &&
+        lng == this.endPosition.lng &&
+        this.isDrew
+      ) {
+        this.isDrew = !this.isDrew;
+      } else {
+        this.isDrew = true;
+        this.endPosition = { lat: lat, lng: lng };
+        this.startAddress = this.searchedPosition.address;
+      }
+
     }
-    this.endPosition = { lat: lat, lng: lng };
   }
 
   getStartPosition() {
@@ -261,13 +371,19 @@ export class AppComponent {
       lat: this.searchedPosition.lat,
       lng: this.searchedPosition.lng,
     };
+    this.startAddress = this.searchedPosition.address;
   }
   public onChange(event: any) {
-    console.log(event.routes[0].legs[0].duration.text);
-    console.log(event.routes[0].legs[0].distance.text);
-    console.log(event.request.travelMode);
-    // You can do anything.
-    console.log(event);
+    this.dureeItineraire=event.routes[0].legs[0].duration.text;
+    this.distanceItineraire=event.routes[0].legs[0].distance.text;
+  }
+
+  clearDirection(){
+    this.endAddress="";
+    this.dureeItineraire="";
+    this.distanceItineraire="";
+    this.isDrew=false;
+    this.previousWindow=null;
   }
 
   listTravelMode:string[]=['DRIVING', 'TRANSIT', 'WALKING']
