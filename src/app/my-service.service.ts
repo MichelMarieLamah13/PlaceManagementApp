@@ -1,4 +1,4 @@
-import { EventData } from './../models/Response';
+import { EventData, POI } from './../models/Response';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { DataModel } from 'src/models/Response';
@@ -33,6 +33,11 @@ export class MyServiceService {
   GetVehicleProche(url:string): Observable<EventData[]>{
     this.params = this.params.append('URL', url);
     return this.http.get<EventData[]>(environment.Server, {params: this.params});
+  }
+
+  GetPointOfInterest(url:string):Observable<POI[]>{
+    this.params = this.params.append('URL', url);
+    return this.http.get<POI[]>(environment.Server, {params: this.params});
   }
 }
 

@@ -92,3 +92,10 @@ export class AgmOpt {
   disableDefaultUI: boolean;
   styles: any[];
 }
+
+export class POI{
+  latitude?:number;
+  longitude?:number;
+  description?:string;
+  icon?:string;
+}

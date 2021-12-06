@@ -1,4 +1,4 @@
-import { EventData } from "./../models/Response";
+import { EventData, POI } from "./../models/Response";
 import { AgmInfoWindow, MapsAPILoader, MouseEvent } from "@agm/core";
 import { Component, ElementRef, NgZone, ViewChild } from "@angular/core";
 import { AgmOpt, marker } from "src/models/Response";
@@ -16,10 +16,10 @@ export class AppComponent {
   startPosition: any;
   endPosition: any;
   agmOpt: AgmOpt;
-  startAddress:string="";
-  endAddress:string="";
-  distanceItineraire:string="";
-  dureeItineraire:string="";
+  startAddress: string = "";
+  endAddress: string = "";
+  distanceItineraire: string = "";
+  dureeItineraire: string = "";
 
   @ViewChild("search")
   public searchElementRef: ElementRef;
@@ -159,7 +159,6 @@ export class AppComponent {
   previousWindow: AgmInfoWindow = null;
 
   clickMarker(infoWindow: AgmInfoWindow, event: EventData = null) {
-
     if (this.previousWindow) {
       this.previousWindow.close();
     }
@@ -167,9 +166,9 @@ export class AppComponent {
     if (event) {
       this.selectedMarker = event;
       this.endAddress = this.selectedMarker.Address;
-      this.dureeItineraire="";
-      this.distanceItineraire="";
-      this.isDrew=false;
+      this.dureeItineraire = "";
+      this.distanceItineraire = "";
+      this.isDrew = false;
     }
   }
 
@@ -202,79 +201,38 @@ export class AppComponent {
   piDropdownList = [];
   piSelectedItems = [];
   piDropdownSettings = {};
-  listPI=[];
-  initPiDropdown(){
-    this.piDropdownList = [
-      {
-        item_id: 1,
-        item_text: "India",
-        image: "http://www.sciencekids.co.nz/images/pictures/flags96/India.jpg",
+  listPI: POI[] = [];
+  initPiDropdown() {
+    this.GetConnectedUser();
+    let webServiceUrl =
+      "http://wsdv.sendatrack.com/GPS/Lst_div/" + this.user.compte;
+    this.myService.GetPointOfInterest(webServiceUrl).subscribe(
+      (data) => {
+        this.listPI = data;
+        this.listPI.map((poi, i) => {
+          let tmp = {
+            item_id: i,
+            item_text: poi.description,
+            image: "http://www.sciencekids.co.nz/images/pictures/flags96/India.jpg",
+          };
+          this.piDropdownList.push(tmp);
+        });
+        this.piSelectedItems = [];
+        this.piDropdownSettings = {
+          singleSelection: false,
+          idField: "item_id",
+          textField: "item_text",
+          selectAllText: "Select All",
+          unSelectAllText: "UnSelect All",
+          itemsShowLimit: 3,
+          allowSearchFilter: true,
+        };
+        console.log(this.piDropdownList)
       },
-      {
-        item_id: 2,
-        item_text: "Spain",
-        image: "http://www.sciencekids.co.nz/images/pictures/flags96/Spain.jpg",
-      },
-      {
-        item_id: 3,
-        item_text: "United Kingdom",
-        image:
-          "http://www.sciencekids.co.nz/images/pictures/flags96/United_Kingdom.jpg",
-      },
-      {
-        item_id: 4,
-        item_text: "Canada",
-        image:
-          "http://www.sciencekids.co.nz/images/pictures/flags96/Canada.jpg",
-        isDisabled: true,
-      },
-      {
-        item_id: 5,
-        item_text: "Israel",
-        image:
-          "http://www.sciencekids.co.nz/images/pictures/flags96/Israel.jpg",
-      },
-      {
-        item_id: 6,
-        item_text: "Brazil",
-        image:
-          "http://www.sciencekids.co.nz/images/pictures/flags96/Brazil.jpg",
-      },
-      {
-        item_id: 7,
-        item_text: "Barbados",
-        image:
-          "http://www.sciencekids.co.nz/images/pictures/flags96/Barbados.jpg",
-      },
-      {
-        item_id: 8,
-        item_text: "Mexico",
-        image:
-          "http://www.sciencekids.co.nz/images/pictures/flags96/Mexico.jpg",
-      },
-    ];
-    this.piSelectedItems = [
-      {
-        item_id: 1,
-        item_text: "India",
-        image: "http://www.sciencekids.co.nz/images/pictures/flags96/India.jpg",
-      },
-      {
-        item_id: 5,
-        item_text: "Israel",
-        image:
-          "http://www.sciencekids.co.nz/images/pictures/flags96/Israel.jpg",
-      },
-    ];
-    this.piDropdownSettings = {
-      singleSelection: false,
-      idField: 'item_id',
-      textField: 'item_text',
-      selectAllText: 'Select All',
-      unSelectAllText: 'UnSelect All',
-      itemsShowLimit: 3,
-      allowSearchFilter: true
-    };
+      (error) => {
+        console.log(error);
+      }
+    );
   }
   get getPI() {
     return this.piDropdownList.reduce((acc, curr) => {
@@ -345,9 +303,9 @@ export class AppComponent {
     suppressMarkers: true,
   };
   isDrew: boolean = false;
-  selectedMarker:EventData;
+  selectedMarker: EventData;
   drawDirection() {
-    if(this.selectedMarker){
+    if (this.selectedMarker) {
       let lat = this.selectedMarker.GPSPoint_lat;
       let lng = this.selectedMarker.GPSPoint_lon;
       if (
@@ -362,7 +320,6 @@ export class AppComponent {
         this.endPosition = { lat: lat, lng: lng };
         this.startAddress = this.searchedPosition.address;
       }
-
     }
   }
 
@@ -374,18 +331,18 @@ export class AppComponent {
     this.startAddress = this.searchedPosition.address;
   }
   public onChange(event: any) {
-    this.dureeItineraire=event.routes[0].legs[0].duration.text;
-    this.distanceItineraire=event.routes[0].legs[0].distance.text;
+    this.dureeItineraire = event.routes[0].legs[0].duration.text;
+    this.distanceItineraire = event.routes[0].legs[0].distance.text;
   }
 
-  clearDirection(){
-    this.endAddress="";
-    this.dureeItineraire="";
-    this.distanceItineraire="";
-    this.isDrew=false;
-    this.previousWindow=null;
+  clearDirection() {
+    this.endAddress = "";
+    this.dureeItineraire = "";
+    this.distanceItineraire = "";
+    this.isDrew = false;
+    this.previousWindow = null;
   }
 
-  listTravelMode:string[]=['DRIVING', 'TRANSIT', 'WALKING']
-  travelMode:string='DRIVING';
+  listTravelMode: string[] = ["DRIVING", "TRANSIT", "WALKING"];
+  travelMode: string = "DRIVING";
 }
