@@ -2,6 +2,36 @@
   <div class="row">
     <div class="col-md-4">
       <div class="form-group">
+        <label class="form-label">Mode de Recherche </label>
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="radio"
+            name="mode"
+            id="poc"
+            value="poc"
+            checked
+            [(ngModel)]="chearchedMode"
+            (change)="onModeChange($event)"
+          />
+          <label class="form-check-label" for="poc">
+            Position sur la carte
+          </label>
+        </div>
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="radio"
+            name="mode"
+            id="poi"
+            value="poi"
+            [(ngModel)]="chearchedMode"
+            (change)="onModeChange($event)"
+          />
+          <label class="form-check-label" for="poi"> Point d'intérêt </label>
+        </div>
+      </div>
+      <div class="form-group" *ngIf="chearchedMode == 'poc'">
         <label class="form-label">Entrez l'addresse voulue</label>
         <input
           type="text"
@@ -16,13 +46,16 @@
           [(ngModel)]="searchedPosition.address"
         />
       </div>
-      <div class="form-group">
+
+      <div class="form-group" *ngIf="chearchedMode == 'poi'">
         <label class="form-label">Sélectionner les points d'intérêts</label>
         <ng-multiselect-dropdown
           class="col-xl-8 col-sm-7 m-0 p-0"
           [placeholder]="'-- Selectionner --'"
           [settings]="piDropdownSettings"
           [data]="piDropdownList"
+          (onSelect)="onItemSelectPoi($event)"
+          (onDeSelect)="onItemDeSelectPoi($event)"
         >
           <ng-template
             #optionsTemplate
@@ -129,11 +162,13 @@
         [styles]="agmOpt.styles"
       >
         <agm-marker
+          *ngIf="searchedPosition.address"
           [latitude]="searchedPosition.lat"
           [longitude]="searchedPosition.lng"
           (markerClick)="clickMarker(starterInfowindow)"
           (dragEnd)="dragEndMarker($event)"
           [markerDraggable]="true"
+          [iconUrl]="searchedPosition.icon"
         >
           <agm-info-window [disableAutoPan]="false" #starterInfowindow>
             <div>

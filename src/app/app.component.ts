@@ -45,6 +45,13 @@ export class AppComponent {
   }
 
   ngOnInit() {
+    this.searchedPosition.icon = "./assets/default.png";
+    this.addEventOnChearchBar();
+    this.initDropdown();
+    this.initPiDropdown();
+  }
+
+  addEventOnChearchBar(){
     this.mapsAPILoader.load().then(() => {
       this.setCurrentLocation();
       this.geoCoder = new google.maps.Geocoder();
@@ -63,6 +70,7 @@ export class AppComponent {
           this.searchedPosition.lat = place.geometry.location.lat();
           this.searchedPosition.lng = place.geometry.location.lng();
           this.searchedPosition.address = place.formatted_address;
+          this.searchedPosition.icon = "./assets/search.png";
           this.agmOpt.zoom = 12;
           //To get start position of the direction
           this.getStartPosition();
@@ -70,10 +78,7 @@ export class AppComponent {
         });
       });
     });
-    this.initDropdown();
-    this.initPiDropdown();
   }
-
   private setCurrentLocation() {
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition((position) => {
@@ -82,7 +87,6 @@ export class AppComponent {
         this.agmOpt.zoom = 8;
         this.getStartPosition();
         this.getAddress();
-        //this.GetVehicleProche();
       });
     }
   }
@@ -199,9 +203,10 @@ export class AppComponent {
   }
 
   piDropdownList = [];
-  piSelectedItems = [];
+  piSelectedItem: any = {};
   piDropdownSettings = {};
   listPI: POI[] = [];
+  chearchedMode: string = "poc";
   initPiDropdown() {
     this.GetConnectedUser();
     let webServiceUrl =
@@ -209,17 +214,17 @@ export class AppComponent {
     this.myService.GetPointOfInterest(webServiceUrl).subscribe(
       (data) => {
         this.listPI = data;
-        this.listPI.map((poi, i) => {
+        this.piDropdownList = this.listPI.map((poi, i) => {
           let tmp = {
             item_id: i,
             item_text: poi.description,
-            image: "http://www.sciencekids.co.nz/images/pictures/flags96/India.jpg",
+            image: "./assets/iconesImg/" + poi.icon,
           };
-          this.piDropdownList.push(tmp);
+          return tmp;
         });
-        this.piSelectedItems = [];
+        this.piSelectedItem = {};
         this.piDropdownSettings = {
-          singleSelection: false,
+          singleSelection: true,
           idField: "item_id",
           textField: "item_text",
           selectAllText: "Select All",
@@ -227,7 +232,6 @@ export class AppComponent {
           itemsShowLimit: 3,
           allowSearchFilter: true,
         };
-        console.log(this.piDropdownList)
       },
       (error) => {
         console.log(error);
@@ -239,6 +243,35 @@ export class AppComponent {
       acc[curr.item_id] = curr;
       return acc;
     }, {});
+  }
+
+  onItemSelectPoi(item: any) {
+    let selectedPoi = this.listPI.filter((x, i) => {
+      if (i == item.item_id) {
+        return x;
+      }
+    })[0];
+    this.searchedPosition.lat = selectedPoi.latitude;
+    this.searchedPosition.lng = selectedPoi.longitude;
+    let poiUrl = "./assets/iconesImg/" + selectedPoi.icon
+    this.searchedPosition.icon = poiUrl;
+    this.getAddress();
+    this.getStartPosition();
+    this.GetVehicleProche();
+  }
+  onModeChange(event:any){
+    this.setMapToDefault();
+    console.log(event.target.value);
+    console.log(this.searchElementRef);
+  }
+  onItemDeSelectPoi(item: any) {
+    this.setMapToDefault();
+  }
+
+  setMapToDefault(){
+    this.setCurrentLocation();
+    this.searchedPosition.icon = "./assets/default.png";
+    this.listEventData = []
   }
 
   rayon: number = 10;
@@ -253,16 +286,19 @@ export class AppComponent {
     console.log(items);
   }
 
-  getIcon(marker: EventData) {
-    let tmp = 50;
-    var icon = {
-      labelOrigin: { x: tmp, y: tmp }, //16,48
-      url: "./assets/images/va.png",
+  initIcon(url:string,width:number=50,height:number=50,x:number=50, y:number=50){
+    let tmpIcon = {
+      labelOrigin: { x: x, y: y }, //16,48
+      url: url,
       scaledSize: {
-        width: tmp, //20, 90
-        height: tmp, //40, 90
+        width: width, //20, 90
+        height: height, //40, 90
       },
     };
+    return tmpIcon;
+  }
+  getIcon(marker: EventData) {
+    let icon = this.initIcon("./assets/images/va.png");
     if (marker.StatusCode != 62467) {
       switch (marker.Heading_desc) {
         case "N":
